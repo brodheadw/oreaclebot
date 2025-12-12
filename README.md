@@ -1,8 +1,112 @@
-# Oreacle Bot
+# Oreacle Bot v2.0
 
-A monitoring bot that tracks Chinese regulatory sources for CATL lithium mine license updates and automatically posts analysis to Manifold Markets.
+**News-driven prediction market trading** - Connects enriched articles from Snowflake to Manifold Markets, using LLM analysis to find and execute trading opportunities.
 
-## Overview
+## What's New in v2.0
+
+The bot has been completely rebuilt to be a general-purpose article-to-prediction-market trading machine:
+
+- **Article Source**: Pulls enriched news articles from Snowflake (MIKHAIL.PUBLIC.ARTICLE)
+- **Market Matching**: Automatically finds relevant Manifold Markets for each article
+- **LLM Analysis**: Uses GPT to determine if articles provide tradeable edge
+- **Kelly Betting**: Sizes bets using Kelly criterion with configurable risk parameters
+- **CLI Interface**: Easy-to-use commands for running, testing, and analyzing
+
+## Quick Start (v2.0)
+
+```bash
+# Install
+pip install -e .
+
+# Configure credentials (copy .env.example to .env and fill in)
+cp .env.example .env
+
+# Test connections
+oreaclebot test
+
+# Run in dry-run mode (analyze but don't trade)
+oreaclebot run --dry-run
+
+# Run live trading
+oreaclebot run --max-trades 3 --max-bet 25
+```
+
+## Commands
+
+```bash
+# Single trading session
+oreaclebot run [options]
+  --days N          Days of articles to analyze (default: 3)
+  --max-articles N  Max articles to process (default: 20)
+  --max-trades N    Max trades to execute (default: 5)
+  --min-edge F      Minimum edge to trade (default: 0.05 = 5%)
+  --min-confidence F Minimum confidence (default: 0.6 = 60%)
+  --max-bet F       Maximum bet size in M$ (default: 25)
+  --dry-run         Analyze without trading
+
+# Continuous mode
+oreaclebot continuous --interval 60 --max-trades 3
+
+# Analyze specific article
+oreaclebot analyze <article_id>
+
+# List recent articles
+oreaclebot list --days 7 --limit 20
+
+# Test connections
+oreaclebot test
+```
+
+## How It Works
+
+```
+Snowflake ARTICLE Table
+    │
+    ▼
+┌─────────────────────┐
+│ 1. Fetch Articles   │  Recent enriched articles with metal/impact analysis
+└─────────────────────┘
+    │
+    ▼
+┌─────────────────────┐
+│ 2. Match Markets    │  Search Manifold for relevant prediction markets
+└─────────────────────┘
+    │
+    ▼
+┌─────────────────────┐
+│ 3. LLM Analysis     │  GPT analyzes article-market pairs for edge
+└─────────────────────┘
+    │
+    ▼
+┌─────────────────────┐
+│ 4. Execute Trades   │  Place bets using Kelly-optimal sizing
+└─────────────────────┘
+```
+
+## Required Credentials
+
+Set these in `.env` or as environment variables:
+
+```bash
+# Snowflake (article source)
+SNOWFLAKE_USER=xxx
+SNOWFLAKE_PASSWORD=xxx
+SNOWFLAKE_ACCOUNT=xxx
+
+# Manifold Markets (trading)
+MANIFOLD_API_KEY=xxx
+
+# OpenAI (analysis)
+OPENAI_API_KEY=xxx
+```
+
+---
+
+# Legacy Mode (v1.0)
+
+The original oreaclebot functionality for monitoring Chinese regulatory sources is still available via `oreaclebot-legacy`.
+
+## Overview (Legacy)
 
 Oreacle-bot v1.0 monitors the exact sources cited in the ["CATL receives license renewal for Yichun Lithium mine by x"](https://manifold.markets/MikhailTal/catl-receives-license-renewal-for-y) prediction market:
 
